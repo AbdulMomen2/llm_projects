@@ -1,0 +1,83 @@
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Product Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 AI Product Search</h1>
+
+        <!-- Add Product -->
+        <div class="section">
+            <h2>📦 Add Product</h2>
+            <input type="text" id="product_name" placeholder="Product Name">
+            <textarea id="product_description" placeholder="Product Description"></textarea>
+            <button onclick="addProduct()">Add Product</button>
+        </div>
+
+        <!-- Search Product -->
+        <div class="section">
+            <h2>🔎 Search Product</h2>
+            <input type="text" id="query" placeholder="Enter product name">
+            <button onclick="searchProducts()">Search</button>
+        </div>
+
+        <!-- Results -->
+        <div id="results"></div>
+    </div>
+
+	<script>
+		function addProduct() {
+    let name = document.getElementById("product_name").value;
+    let description = document.getElementById("product_description").value;
+
+    fetch("/add_product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description })
+    })
+    .then(response => response.json())
+    .then(data => alert(data.message))
+    .catch(error => console.error("Error:", error));
+}
+
+function searchProducts() {
+    let query = document.getElementById("query").value;
+
+    fetch("/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+    })
+    .then(response => response.json())
+    .then(data => {
+        let resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = "<h3>Search Results</h3>";
+
+        if (data.local_results.length > 0) {
+            data.local_results.forEach(product => {
+                resultsDiv.innerHTML += `<div class="product-item"><strong>${product.name}</strong><br>${product.description}</div>`;
+            });
+        } else {
+            resultsDiv.innerHTML += "<p>No products found.</p>";
+        }
+
+        if (data.ai_response) {
+            resultsDiv.innerHTML += `<h3>🤖 AI Recommendation:</h3><p>${data.ai_response}</p>`;
+        }
+    })
+    .catch(error => console.error("Error:", error));
+}
+
+
+	</script>
+        
+    </body>
+</html>
